@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Form, Button } from 'semantic-ui-react'
 import Auth from '../auth/Auth'
-import { getUploadUrl, uploadFile } from '../api/todos-api'
+import { getUploadUrl, uploadFile } from '../api/certification-api'
 
 enum UploadState {
   NoUpload,
@@ -9,25 +9,25 @@ enum UploadState {
   UploadingFile,
 }
 
-interface EditTodoProps {
+interface EditCertificationProps {
   match: {
     params: {
-      todoId: string
+      certificationId: string
     }
   }
   auth: Auth
 }
 
-interface EditTodoState {
+interface EditCertificationState {
   file: any
   uploadState: UploadState
 }
 
-export class EditTodo extends React.PureComponent<
-  EditTodoProps,
-  EditTodoState
+export class EditCertification extends React.PureComponent<
+  EditCertificationProps,
+  EditCertificationState
 > {
-  state: EditTodoState = {
+  state: EditCertificationState = {
     file: undefined,
     uploadState: UploadState.NoUpload
   }
@@ -51,14 +51,16 @@ export class EditTodo extends React.PureComponent<
       }
 
       this.setUploadState(UploadState.FetchingPresignedUrl)
-      const uploadUrl = await getUploadUrl(this.props.auth.getIdToken(), this.props.match.params.todoId)
+      const uploadUrl = await getUploadUrl(this.props.auth.getIdToken(), this.props.match.params.certificationId)
 
       this.setUploadState(UploadState.UploadingFile)
       await uploadFile(uploadUrl, this.state.file)
 
       alert('File was uploaded!')
-    } catch (e) {
-      alert('Could not upload a file: ' + (e as Error).message)
+    } catch (e ) {
+      if (e instanceof Error) {
+        alert('Could not upload a file: ' + e.message)
+      }  
     } finally {
       this.setUploadState(UploadState.NoUpload)
     }

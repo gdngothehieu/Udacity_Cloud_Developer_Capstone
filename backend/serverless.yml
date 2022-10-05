@@ -23,7 +23,7 @@ provider:
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: s3-bucket-gdngothehieu-${self:provider.stage}
+    ATTACHMENT_S3_BUCKET: udagram-best-bucket-ever-hieunt114
     SIGNED_URL_EXPIRATION: 300
     Auth_0_Secret: tdUydf6LH1SKExVhv-1v85Y_nSXxhBjj7gvS1Xv6Rmj3YBu-DnoSuKtZLlwCGd2U
     AUTH_0_JSON_WEB_KEY_SET_URL: https://dev-mm0vvjb8.us.auth0.com/.well-known/jwks.json
