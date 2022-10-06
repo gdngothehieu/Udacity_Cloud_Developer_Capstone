@@ -2,21 +2,23 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import "source-map-support/register";
 import * as middy from "middy";
 import { cors, httpErrorHandler } from "middy/middlewares";
-import { CreateTodoRequest } from "../../requests/CreateTodoRequest";
+import { CreateCertificationRequest } from "../../requests/CreateCertificationRequest";
 import { getUserId } from "../utils";
-import { createTodo } from "../../businessLogic/todos";
+import { createCertification } from "../../businessLogic/certifications";
 import { createLogger } from "../../utils/logger";
 
-const logger = createLogger("createTodo");
-// TODO: Implement creating a new TODO item
+const logger = createLogger("createCertification");
+// certification: Implement creating a new certification item
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
       logger.info(`Processing event`);
-      const newTodo: CreateTodoRequest = JSON.parse(event.body);
+      const newCertification: CreateCertificationRequest = JSON.parse(
+        event.body
+      );
       const userId = getUserId(event);
-      const newItem = await createTodo(newTodo, userId);
+      const newItem = await createCertification(newCertification, userId);
 
       return {
         statusCode: 201,

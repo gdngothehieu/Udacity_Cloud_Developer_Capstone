@@ -7,7 +7,7 @@ import Axios from "axios";
 import { Jwt } from "../../auth/Jwt";
 import { JwtPayload } from "../../auth/JwtPayload";
 
-// TODO: Provide a URL that can be used to download a certificate that can be used
+// certification: Provide a URL that can be used to download a certificate that can be used
 // to verify JWT token signature.
 const logger = createLogger("auth");
 

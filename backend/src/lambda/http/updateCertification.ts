@@ -4,23 +4,29 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import * as middy from "middy";
 import { cors, httpErrorHandler } from "middy/middlewares";
 
-import { updateTodo } from "../../businessLogic/todos";
-import { UpdateTodoRequest } from "../../requests/UpdateTodoRequest";
+import { updateCertification } from "../../businessLogic/certifications";
+import { UpdateCertificationRequest } from "../../requests/UpdateCertificationRequest";
 import { getUserId } from "../utils";
 import { createLogger } from "../../utils/logger";
 
-const logger = createLogger("updateTodo");
-// TODO: Update a TODO item with the provided id using values in the "updatedTodo" object
+const logger = createLogger("updateCertification");
+// certification: Update a certification item with the provided id using values in the "updatedCertification" object
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
-      const todoId = event.pathParameters.todoId;
-      const updatedTodo: UpdateTodoRequest = JSON.parse(event.body);
+      const certificationId = event.pathParameters.certificationId;
+      const updatedCertification: UpdateCertificationRequest = JSON.parse(
+        event.body
+      );
       logger.info("Processing event");
 
       const userId = getUserId(event);
-      const response = await updateTodo(userId, todoId, updatedTodo);
+      const response = await updateCertification(
+        userId,
+        certificationId,
+        updatedCertification
+      );
 
       return {
         statusCode: 200,

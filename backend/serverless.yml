@@ -1,6 +1,6 @@
 org: gdngothehieu
 app: serverless-super-app-immortal
-service: serverless-todo-app
+service: serverless-ceritification-app
 
 plugins:
   - serverless-webpack
@@ -21,9 +21,9 @@ provider:
     apiGateway: true
 
   environment:
-    TODOS_TABLE: Todos-${self:provider.stage}
-    TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: udagram-best-bucket-ever-hieunt114
+    CERTIFICATIONS_TABLE: certifications-super-${self:provider.stage}
+    CERTIFICATIONS_CREATED_AT_INDEX: CreatedAtIndex
+    ATTACHMENT_S3_BUCKET: udagram-best-bucket-ever
     SIGNED_URL_EXPIRATION: 300
     Auth_0_Secret: tdUydf6LH1SKExVhv-1v85Y_nSXxhBjj7gvS1Xv6Rmj3YBu-DnoSuKtZLlwCGd2U
     AUTH_0_JSON_WEB_KEY_SET_URL: https://dev-mm0vvjb8.us.auth0.com/.well-known/jwks.json
@@ -44,12 +44,12 @@ functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
-  GetTodos:
-    handler: src/lambda/http/getTodos.handler
+  GetCertifications:
+    handler: src/lambda/http/getCertifications.handler
     events:
       - http:
           method: get
-          path: todos
+          path: certifications
           cors: true
           authorizer: Auth
     iamRoleStatements:
@@ -59,7 +59,7 @@ functions:
           - dynamodb:GetItem
           - dynamodb:UpdateItem
           - dynamodb:PutItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATIONS_TABLE}
       - Effect: Allow
         Action:
           - xray:GetSamplingRules
@@ -75,24 +75,24 @@ functions:
         Resource:
           - "*"
 
-  CreateTodo:
-    handler: src/lambda/http/createTodo.handler
+  CreateCertification:
+    handler: src/lambda/http/createCertification.handler
     events:
       - http:
           method: post
-          path: todos
+          path: certifications
           cors: true
           authorizer: Auth
           request:
             schemas:
-              application/json: ${file(models/create-todo-model.json)}
+              application/json: ${file(models/create-certification-model.json)}
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:GetItem
           - dynamodb:UpdateItem
           - dynamodb:PutItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATIONS_TABLE}
       - Effect: Allow
         Action:
           - xray:GetSamplingRules
@@ -108,24 +108,24 @@ functions:
         Resource:
           - "*"
 
-  UpdateTodo:
-    handler: src/lambda/http/updateTodo.handler
+  UpdateCertification:
+    handler: src/lambda/http/updateCertification.handler
     events:
       - http:
           method: patch
-          path: todos/{todoId}
+          path: certifications/{certificationId}
           cors: true
           authorizer: Auth
           request:
             schema:
-              "application/json": ${file(models/update-todo-model.json)}
+              "application/json": ${file(models/update-certification-model.json)}
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:GetItem
           - dynamodb:UpdateItem
           - dynamodb:PutItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATIONS_TABLE}
       - Effect: Allow
         Action:
           - xray:GetSamplingRules
@@ -141,12 +141,12 @@ functions:
         Resource:
           - "*"
 
-  DeleteTodo:
-    handler: src/lambda/http/deleteTodo.handler
+  DeleteCertification:
+    handler: src/lambda/http/deleteCertification.handler
     events:
       - http:
           method: delete
-          path: todos/{todoId}
+          path: certifications/{certificationId}
           cors: true
           authorizer: Auth
 
@@ -155,7 +155,7 @@ functions:
         Action:
           - dynamodb:DeleteItem
           - dynamodb:GetItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATIONS_TABLE}
       - Effect: Allow
         Action:
           - xray:GetSamplingRules
@@ -176,7 +176,7 @@ functions:
     events:
       - http:
           method: post
-          path: todos/{todoId}/attachment
+          path: certifications/{certificationId}/attachment
           cors: true
           authorizer: Auth
     iamRoleStatements:
@@ -188,7 +188,7 @@ functions:
         Action:
           - dynamodb:UpdateItem
           - dynamodb:GetItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATIONS_TABLE}
       - Effect: Allow
         Action:
           - xray:GetSamplingRules
@@ -216,26 +216,26 @@ resources:
         ResponseType: DEFAULT_4XX
         RestApiId: !Ref ApiGatewayRestApi
 
-    TodosTable:
+    CertificationsTable:
       Type: AWS::DynamoDB::Table
       Properties:
         #TableName:
         AttributeDefinitions:
           - AttributeName: userId
             AttributeType: S
-          - AttributeName: todoId
+          - AttributeName: certificationId
             AttributeType: S
           - AttributeName: createdAt
             AttributeType: S
         KeySchema:
           - AttributeName: userId
             KeyType: HASH
-          - AttributeName: todoId
+          - AttributeName: certificationId
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
-        TableName: ${self:provider.environment.TODOS_TABLE}
+        TableName: ${self:provider.environment.CERTIFICATIONS_TABLE}
         GlobalSecondaryIndexes:
-          - IndexName: ${self:provider.environment.TODOS_CREATED_AT_INDEX}
+          - IndexName: ${self:provider.environment.CERTIFICATIONS_CREATED_AT_INDEX}
             KeySchema:
               - AttributeName: userId
                 KeyType: HASH
@@ -244,7 +244,7 @@ resources:
             Projection:
               ProjectionType: ALL
 
-    # TODO: Complete the bucket properties below.
+    # certification: Complete the bucket properties below.
     AttachmentsBucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -263,7 +263,7 @@ resources:
                 - HEAD
               MaxAge: 3000
 
-    # TODO: Complete the policy below and attach it to the bucket defined above
+    # certification: Complete the policy below and attach it to the bucket defined above
     BucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:

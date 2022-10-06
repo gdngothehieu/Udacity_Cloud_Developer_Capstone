@@ -9,7 +9,7 @@ export async function getCertification(
 ): Promise<Certifications[]> {
   console.log("Fetching Certification");
 
-  const response = await Axios.get(`${apiEndpoint}/todos`, {
+  const response = await Axios.get(`${apiEndpoint}/certifications`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${idToken}`,
@@ -26,7 +26,7 @@ export async function searchCertification(
   console.log("Fetching Certification");
 
   const response = await Axios.get(
-    `${apiEndpoint}/todos?search=${searchContent}`,
+    `${apiEndpoint}/certifications?search=${searchContent}`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -43,7 +43,7 @@ export const createCertification = async (
   newCertification: createCertificationRequest
 ): Promise<Certifications> => {
   const response = await Axios.post(
-    `${apiEndpoint}/todos`,
+    `${apiEndpoint}/certifications`,
     JSON.stringify(newCertification),
     {
       headers: {
@@ -61,7 +61,7 @@ export const patchCertification = async (
   updatedCertification: UpdateCertificationRequest
 ): Promise<void> => {
   await Axios.patch(
-    `${apiEndpoint}/todos/${certificationId}`,
+    `${apiEndpoint}/certifications/${certificationId}`,
     JSON.stringify(updatedCertification),
     {
       headers: {
@@ -77,7 +77,7 @@ export const deleteCertification = async (
   certificationId: string
 ): Promise<void> => {
   try {
-    await Axios.delete(`${apiEndpoint}/todos/${certificationId}`, {
+    await Axios.delete(`${apiEndpoint}/certifications/${certificationId}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
@@ -94,7 +94,7 @@ export const getUploadUrl = async (
 ): Promise<string> => {
   try {
     const response = await Axios.post(
-      `${apiEndpoint}/todos/${certificationId}/attachment`,
+      `${apiEndpoint}/certifications/${certificationId}/attachment`,
       "",
       {
         headers: {

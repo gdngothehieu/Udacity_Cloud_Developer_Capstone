@@ -1,23 +1,23 @@
-# Serverless TODO
+# Serverless certification
 
-To implement this project, you need to implement a simple TODO application using AWS Lambda and Serverless framework. Search for all comments starting with the `TODO:` in the code to find the placeholders that you need to implement.
+To implement this project, you need to implement a simple certification application using AWS Lambda and Serverless framework. Search for all comments starting with the `certification:` in the code to find the placeholders that you need to implement.
 
 # Functionality of the application
 
-This application will allow creating/removing/updating/fetching TODO items. Each TODO item can optionally have an attachment image. Each user only has access to TODO items that he/she has created.
+This application will allow creating/removing/updating/fetching certification items. Each certification item can optionally have an attachment image. Each user only has access to certification items that he/she has created.
 
-# TODO items
+# certification items
 
-The application should store TODO items, and each TODO item contains the following fields:
+The application should store certification items, and each certification item contains the following fields:
 
-- `todoId` (string) - a unique id for an item
+- `certificationId` (string) - a unique id for an item
 - `createdAt` (string) - date and time when an item was created
-- `name` (string) - name of a TODO item (e.g. "Change a light bulb")
+- `name` (string) - name of a certification item (e.g. "Change a light bulb")
 - `dueDate` (string) - date and time by which an item should be completed
 - `done` (boolean) - true if an item was completed, false otherwise
-- `attachmentUrl` (string) (optional) - a URL pointing to an image attached to a TODO item
+- `attachmentUrl` (string) (optional) - a URL pointing to an image attached to a certification item
 
-You might also store an id of a user who created a TODO item.
+You might also store an id of a user who created a certification item.
 
 ## Prerequisites
 
@@ -46,7 +46,7 @@ To implement this project, you need to implement the following functions and con
 
 - `Auth` - this function should implement a custom authorizer for API Gateway that should be added to all other functions.
 
-- `GetTodos` - should return all TODOs for a current user. A user id can be extracted from a JWT token that is sent by the frontend
+- `GetCertifications` - should return all certifications for a current user. A user id can be extracted from a JWT token that is sent by the frontend
 
 It should return data that looks like this:
 
@@ -54,7 +54,7 @@ It should return data that looks like this:
 {
   "items": [
     {
-      "todoId": "123",
+      "certificationId": "123",
       "createdAt": "2019-07-27T20:01:45.424Z",
       "name": "Buy milk",
       "dueDate": "2019-07-29T20:01:45.424Z",
@@ -62,7 +62,7 @@ It should return data that looks like this:
       "attachmentUrl": "http://example.com/image.png"
     },
     {
-      "todoId": "456",
+      "certificationId": "456",
       "createdAt": "2019-07-27T20:01:45.424Z",
       "name": "Send a letter",
       "dueDate": "2019-07-29T20:01:45.424Z",
@@ -73,9 +73,9 @@ It should return data that looks like this:
 }
 ```
 
-- `CreateTodo` - should create a new TODO for a current user. A shape of data send by a client application to this function can be found in the `CreateTodoRequest.ts` file
+- `CreateCertification` - should create a new certification for a current user. A shape of data send by a client application to this function can be found in the `CreateCertificationRequest.ts` file
 
-It receives a new TODO item to be created in JSON format that looks like this:
+It receives a new certification item to be created in JSON format that looks like this:
 
 ```json
 {
@@ -87,12 +87,12 @@ It receives a new TODO item to be created in JSON format that looks like this:
 }
 ```
 
-It should return a new TODO item that looks like this:
+It should return a new certification item that looks like this:
 
 ```json
 {
   "item": {
-    "todoId": "123",
+    "certificationId": "123",
     "createdAt": "2019-07-27T20:01:45.424Z",
     "name": "Buy milk",
     "dueDate": "2019-07-29T20:01:45.424Z",
@@ -102,9 +102,9 @@ It should return a new TODO item that looks like this:
 }
 ```
 
-- `UpdateTodo` - should update a TODO item created by a current user. A shape of data send by a client application to this function can be found in the `UpdateTodoRequest.ts` file
+- `UpdateCertification` - should update a certification item created by a current user. A shape of data send by a client application to this function can be found in the `UpdateCertificationRequest.ts` file
 
-It receives an object that contains three fields that can be updated in a TODO item:
+It receives an object that contains three fields that can be updated in a certification item:
 
 ```json
 {
@@ -118,11 +118,11 @@ The id of an item that should be updated is passed as a URL parameter.
 
 It should return an empty body.
 
-- `DeleteTodo` - should delete a TODO item created by a current user. Expects an id of a TODO item to remove.
+- `DeleteCertification` - should delete a certification item created by a current user. Expects an id of a certification item to remove.
 
 It should return an empty body.
 
-- `GenerateUploadUrl` - returns a pre-signed URL that can be used to upload an attachment file for a TODO item.
+- `GenerateUploadUrl` - returns a pre-signed URL that can be used to upload an attachment file for a certification item.
 
 It should return a JSON object that looks like this:
 
@@ -189,10 +189,10 @@ _Please leave your application running until a submission is reviewed. If implem
 
 # Suggestions
 
-To store TODO items, you might want to use a DynamoDB table with local secondary index(es). A create a local secondary index you need to create a DynamoDB resource like this:
+To store certification items, you might want to use a DynamoDB table with local secondary index(es). A create a local secondary index you need to create a DynamoDB resource like this:
 
 ```yml
-TodosTable:
+CertificationsTable:
   Type: AWS::DynamoDB::Table
   Properties:
     AttributeDefinitions:
@@ -208,7 +208,7 @@ TodosTable:
       - AttributeName: sortKey
         KeyType: RANGE
     BillingMode: PAY_PER_REQUEST
-    TableName: ${self:provider.environment.TODOS_TABLE}
+    TableName: ${self:provider.environment.CertificationS_TABLE}
     LocalSecondaryIndexes:
       - IndexName: ${self:provider.environment.INDEX_NAME}
         KeySchema:
@@ -257,7 +257,7 @@ npm install
 npm run start
 ```
 
-This should start a development server with the React application that will interact with the serverless TODO application.
+This should start a development server with the React application that will interact with the serverless certification application.
 
 # Postman collection
 

@@ -3,24 +3,24 @@ import "source-map-support/register";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import * as middy from "middy";
 import { cors, httpErrorHandler } from "middy/middlewares";
-import { getUploadUrl, updateUrl } from "../../businessLogic/todos";
+import { getUploadUrl, updateUrl } from "../../businessLogic/certifications";
 import { getUserId } from "../utils";
 import { createLogger } from "../../utils/logger";
 
 const logger = createLogger("generateUploadUrl");
-// TODO: Return a presigned URL to upload a file for a TODO item with the provided id
+// certification: Return a presigned URL to upload a file for a certification item with the provided id
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
-      const todoId = event.pathParameters.todoId;
+      const certificationId = event.pathParameters.certificationId;
 
       logger.info(`Processing event`);
       const userId = getUserId(event);
-      const getUploadURLResponse = await getUploadUrl(todoId);
+      const getUploadURLResponse = await getUploadUrl(certificationId);
       const attachmentId = getUploadURLResponse.split("?")[0];
 
-      await updateUrl(userId, todoId, attachmentId);
+      await updateUrl(userId, certificationId, attachmentId);
 
       return {
         statusCode: 200,
