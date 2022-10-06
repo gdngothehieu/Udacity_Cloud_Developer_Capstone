@@ -52,6 +52,7 @@ export const createCertification = async (
       },
     }
   );
+  console.log(response);
   return response.data.item;
 };
 
