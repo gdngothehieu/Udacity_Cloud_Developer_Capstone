@@ -1,22 +1,47 @@
 import "source-map-support/register";
 
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import * as middy from "middy";
-import { cors, httpErrorHandler } from "middy/middlewares";
-
-import { deleteCertification } from "../../businessLogic/certifications";
-import { getUserId } from "../utils";
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult,
+  APIGatewayProxyHandler,
+} from "aws-lambda";
 import { createLogger } from "../../utils/logger";
+import {
+  deleteCertification,
+  certificationExists,
+} from "../../businessLogic/certification";
 
-const logger = createLogger("deleteCertification");
+const logger = createLogger("deleteCertificationhandler");
 
-export const handler = middy(
-  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const certificationId = event.pathParameters.certificationId;
-    // certification: Remove a certification item by id
-    logger.info(`Processing event: ${event}`);
-    const userId = getUserId(event);
-    const newItem = await deleteCertification(userId, certificationId);
+export const handler: APIGatewayProxyHandler = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const certificationId = event.pathParameters.certificationId;
+
+  const authorization = event.headers.Authorization;
+  const split = authorization.split(" ");
+  const jwtToken = split[1];
+  logger.info("Processing event: ", event);
+  const isValidCertificationId = await certificationExists(
+    certificationId,
+    jwtToken
+  );
+
+  if (!isValidCertificationId) {
+    return {
+      statusCode: 404,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+      },
+      body: JSON.stringify({
+        error: "Certification not found",
+      }),
+    };
+  }
+
+  try {
+    await deleteCertification(certificationId, jwtToken);
 
     return {
       statusCode: 200,
@@ -24,14 +49,17 @@ export const handler = middy(
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Credentials": true,
       },
-      body: JSON.stringify({
-        item: newItem, //return empty
-      }),
+      body: "Deleted",
+    };
+  } catch (err) {
+    logger.error("Failed to delete", err);
+    return {
+      statusCode: 500,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+      },
+      body: "Failed to delete",
     };
   }
-);
-handler.use(httpErrorHandler()).use(
-  cors({
-    credentials: true,
-  })
-);
+};

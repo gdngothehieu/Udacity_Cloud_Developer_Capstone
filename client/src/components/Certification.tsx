@@ -22,7 +22,7 @@ import {
   searchCertification,
 } from "../api/certification-api";
 import Auth from "../auth/Auth";
-import { Certifications } from "../types/Certifications";
+import { Certifications } from "../types/Certification";
 
 interface CertificationProps {
   auth: Auth;
@@ -30,7 +30,7 @@ interface CertificationProps {
 }
 
 interface CertificationState {
-  certifications: Certifications[];
+  certification: Certifications[];
   newCertificationName: string;
   loadingCertification: boolean;
   searchContent: string;
@@ -40,15 +40,12 @@ export class Certification extends React.PureComponent<
   CertificationProps,
   CertificationState
 > {
-  constructor(props: CertificationProps) {
-    super(props);
-    this.state = {
-      certifications: [],
-      newCertificationName: "",
-      loadingCertification: true,
-      searchContent: "",
-    };
-  }
+  state: CertificationState = {
+    certification: [],
+    newCertificationName: "",
+    loadingCertification: true,
+    searchContent: "",
+  };
 
   handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({ newCertificationName: event.target.value });
@@ -59,7 +56,7 @@ export class Certification extends React.PureComponent<
   };
 
   onEditButtonClick = (certificationId: string) => {
-    this.props?.history?.push(`/certification/${certificationId}/edit`);
+    this.props.history.push(`/certification/${certificationId}/edit`);
   };
 
   onCertificationCreate = async (
@@ -68,39 +65,35 @@ export class Certification extends React.PureComponent<
     try {
       const dueDate = this.calculateDueDate();
       const newCertification = await createCertification(
-        this.props?.auth?.getIdToken(),
+        this.props.auth.getIdToken(),
         {
-          name: this.state?.newCertificationName,
+          name: this.state.newCertificationName,
           dueDate,
         }
       );
-      console.log(newCertification, this.state?.certifications);
       this.setState({
-        certifications: [
-          ...(this.state?.certifications || []),
-          newCertification,
-        ],
-        newCertificationName: newCertification?.name,
+        certification: [...this.state.certification, newCertification],
+        newCertificationName: "",
       });
-    } catch (e) {
-      console.log(e);
+    } catch {
+      alert("Certification creation failed");
     }
   };
 
   onSearch = async (event: React.ChangeEvent<HTMLButtonElement>) => {
     try {
       console.log("abc", this.state);
-      const certifications = await searchCertification(
-        this.props?.auth?.getIdToken(),
+      const certification = await searchCertification(
+        this.props.auth.getIdToken(),
         this.state.searchContent
       );
       this.setState({
-        certifications,
+        certification,
         loadingCertification: false,
       });
     } catch (e) {
       if (e instanceof Error) {
-        console.log(e);
+        alert(`Failed to fetch certification: ${e.message}`);
       }
     }
   };
@@ -109,49 +102,49 @@ export class Certification extends React.PureComponent<
     try {
       await deleteCertification(this.props.auth.getIdToken(), certificationId);
       this.setState({
-        certifications: this.state?.certifications.filter(
-          (certification) => certification?.certificationId !== certificationId
+        certification: this.state.certification.filter(
+          (certification) => certification.certificationId !== certificationId
         ),
       });
-    } catch (e) {
-      console.log(e);
+    } catch {
+      alert("Certification deletion failed");
     }
   };
 
   onCertificationCheck = async (pos: number) => {
     try {
-      const certification = this.state.certifications[pos];
+      const certification = this.state.certification[pos];
       await patchCertification(
         this.props.auth.getIdToken(),
         certification.certificationId,
         {
-          name: certification?.name,
-          dueDate: certification?.dueDate,
-          done: !certification?.done,
+          name: certification.name,
+          dueDate: certification.dueDate,
+          done: !certification.done,
         }
       );
       this.setState({
-        certifications: update(this.state.certifications, {
-          [pos]: { done: { $set: !certification?.done } },
+        certification: update(this.state.certification, {
+          [pos]: { done: { $set: !certification.done } },
         }),
       });
-    } catch (e) {
-      console.log(e);
+    } catch {
+      alert("Certification deletion failed");
     }
   };
 
   async componentDidMount() {
     try {
-      const certifications = await getCertification(
+      const certification = await getCertification(
         this.props.auth.getIdToken()
       );
       this.setState({
-        certifications,
+        certification,
         loadingCertification: false,
       });
     } catch (e) {
       if (e instanceof Error) {
-        console.log(e);
+        alert(`Failed to fetch certification: ${e.message}`);
       }
     }
   }
@@ -159,16 +152,16 @@ export class Certification extends React.PureComponent<
   render() {
     return (
       <div>
-        <Header as="h1">Certification Goal</Header>
+        <Header as="h1">My Certification</Header>
 
-        {this.rendercreateCertificationInput()}
-        {this.rendersearchCertificationInput()}
+        {this.renderCreateCertificationInput()}
+        {this.renderSearchCertificationInput()}
         {this.renderCertification()}
       </div>
     );
   }
 
-  rendercreateCertificationInput() {
+  renderCreateCertificationInput() {
     return (
       <Grid.Row>
         <Grid.Column width={16}>
@@ -177,7 +170,7 @@ export class Certification extends React.PureComponent<
               color: "teal",
               labelPosition: "left",
               icon: "add",
-              content: "New goal",
+              content: "New Certification",
               onClick: this.onCertificationCreate,
             }}
             fluid
@@ -193,7 +186,7 @@ export class Certification extends React.PureComponent<
     );
   }
 
-  rendersearchCertificationInput() {
+  renderSearchCertificationInput() {
     return (
       <Grid.Row>
         <Grid.Column width={16}>
@@ -202,7 +195,7 @@ export class Certification extends React.PureComponent<
               color: "orange",
               labelPosition: "left",
               icon: "search",
-              content: "Search Goal",
+              content: "Search certification",
               onClick: this.onSearch,
             }}
             fluid
@@ -239,27 +232,27 @@ export class Certification extends React.PureComponent<
   renderCertificationList() {
     return (
       <Grid padded>
-        {this.state.certifications?.map((certification, pos) => {
+        {this.state.certification.map((certification, pos) => {
           return (
-            <Grid.Row key={certification?.certificationId}>
+            <Grid.Row key={certification.certificationId}>
               <Grid.Column width={1} verticalAlign="middle">
                 <Checkbox
                   onChange={() => this.onCertificationCheck(pos)}
-                  checked={certification?.done}
+                  checked={certification.done}
                 />
               </Grid.Column>
               <Grid.Column width={10} verticalAlign="middle">
-                {certification?.name}
+                {certification.name}
               </Grid.Column>
               <Grid.Column width={3} floated="right">
-                {certification?.dueDate}
+                {certification.dueDate}
               </Grid.Column>
               <Grid.Column width={1} floated="right">
                 <Button
                   icon
                   color="blue"
                   onClick={() =>
-                    this.onEditButtonClick(certification?.certificationId)
+                    this.onEditButtonClick(certification.certificationId)
                   }
                 >
                   <Icon name="pencil" />
@@ -270,18 +263,14 @@ export class Certification extends React.PureComponent<
                   icon
                   color="red"
                   onClick={() =>
-                    this.onCertificationDelete(certification?.certificationId)
+                    this.onCertificationDelete(certification.certificationId)
                   }
                 >
                   <Icon name="delete" />
                 </Button>
               </Grid.Column>
-              {certification?.attachmentUrl && (
-                <Image
-                  src={certification?.attachmentUrl}
-                  size="small"
-                  wrapped
-                />
+              {certification.attachmentUrl && (
+                <Image src={certification.attachmentUrl} size="small" wrapped />
               )}
               <Grid.Column width={16}>
                 <Divider />

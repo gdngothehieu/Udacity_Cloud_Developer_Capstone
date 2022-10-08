@@ -1,6 +1,6 @@
 org: gdngothehieu
 app: serverless-super-app-immortal
-service: serverless-ceritification-app
+service: serverless-certification-app
 
 plugins:
   - serverless-webpack
@@ -21,14 +21,14 @@ provider:
     apiGateway: true
 
   environment:
-    CERTIFICATIONS_TABLE: certifications-super-${self:provider.stage}
-    CERTIFICATIONS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: udagram-best-bucket-ever
+    CERTIFICATION_TABLE: Certification-super-${self:provider.stage}
+    CERTIFICATION_CREATED_AT_INDEX: CreatedAtIndex
+    ATTACHMENT_S3_BUCKET: s3-super-bucket-gdngothehieu-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
     Auth_0_Secret: tdUydf6LH1SKExVhv-1v85Y_nSXxhBjj7gvS1Xv6Rmj3YBu-DnoSuKtZLlwCGd2U
     AUTH_0_JSON_WEB_KEY_SET_URL: https://dev-mm0vvjb8.us.auth0.com/.well-known/jwks.json
-
   logs:
+    # Enable API Gateway logs
     restApi: true
 
   iam:
@@ -44,182 +44,136 @@ functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
-  GetCertifications:
-    handler: src/lambda/http/getCertifications.handler
+  GetCertification:
+    handler: src/lambda/http/getCertification.handler
     events:
       - http:
           method: get
-          path: certifications
+          path: certification
           cors: true
-          authorizer: Auth
+
     iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
       - Effect: Allow
         Action:
           - dynamodb:Query
-          - dynamodb:GetItem
-          - dynamodb:UpdateItem
-          - dynamodb:PutItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATIONS_TABLE}
-      - Effect: Allow
-        Action:
-          - xray:GetSamplingRules
-          - xray:GetSamplingTargets
-          - xray:GetSamplingStatisticSummaries
-          - xray:BatchGetTraces
-          - xray:GetServiceGraph
-          - xray:GetTraceGraph
-          - xray:GetTraceSummaries
-          - xray:GetGroups
-          - xray:GetGroup
-          - xray:PutTraceSegments
-        Resource:
-          - "*"
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATION_TABLE}/index/${self:provider.environment.CERTIFICATION_CREATED_AT_INDEX}
 
   CreateCertification:
     handler: src/lambda/http/createCertification.handler
     events:
       - http:
           method: post
-          path: certifications
+          path: certification
           cors: true
-          authorizer: Auth
+
           request:
             schemas:
               application/json: ${file(models/create-certification-model.json)}
     iamRoleStatements:
-      - Effect: Allow
+      - Effect: "Allow"
         Action:
-          - dynamodb:GetItem
-          - dynamodb:UpdateItem
-          - dynamodb:PutItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATIONS_TABLE}
-      - Effect: Allow
-        Action:
-          - xray:GetSamplingRules
-          - xray:GetSamplingTargets
-          - xray:GetSamplingStatisticSummaries
-          - xray:BatchGetTraces
-          - xray:GetServiceGraph
-          - xray:GetTraceGraph
-          - xray:GetTraceSummaries
-          - xray:GetGroups
-          - xray:GetGroup
-          - xray:PutTraceSegments
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
         Resource:
           - "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATION_TABLE}
 
+  # Provide property for setting up CORS, Authorizer, iamRoleStatements, and request schemas
   UpdateCertification:
     handler: src/lambda/http/updateCertification.handler
     events:
       - http:
           method: patch
-          path: certifications/{certificationId}
+          path: certification/{certificationId}
           cors: true
-          authorizer: Auth
-          request:
-            schema:
-              "application/json": ${file(models/update-certification-model.json)}
+
     iamRoleStatements:
+      - Effect: "Allow" # xray permissions (required)
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
       - Effect: Allow
         Action:
           - dynamodb:GetItem
           - dynamodb:UpdateItem
-          - dynamodb:PutItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATIONS_TABLE}
-      - Effect: Allow
-        Action:
-          - xray:GetSamplingRules
-          - xray:GetSamplingTargets
-          - xray:GetSamplingStatisticSummaries
-          - xray:BatchGetTraces
-          - xray:GetServiceGraph
-          - xray:GetTraceGraph
-          - xray:GetTraceSummaries
-          - xray:GetGroups
-          - xray:GetGroup
-          - xray:PutTraceSegments
-        Resource:
-          - "*"
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATION_TABLE}
 
+  # Provide property for setting up CORS, Authorizer, iamRoleStatements
   DeleteCertification:
     handler: src/lambda/http/deleteCertification.handler
     events:
       - http:
           method: delete
-          path: certifications/{certificationId}
+          path: certification/{certificationId}
           cors: true
-          authorizer: Auth
 
     iamRoleStatements:
-      - Effect: Allow
+      - Effect: "Allow" # xray permissions (required)
         Action:
-          - dynamodb:DeleteItem
-          - dynamodb:GetItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATIONS_TABLE}
-      - Effect: Allow
-        Action:
-          - xray:GetSamplingRules
-          - xray:GetSamplingTargets
-          - xray:GetSamplingStatisticSummaries
-          - xray:BatchGetTraces
-          - xray:GetServiceGraph
-          - xray:GetTraceGraph
-          - xray:GetTraceSummaries
-          - xray:GetGroups
-          - xray:GetGroup
-          - xray:PutTraceSegments
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
         Resource:
           - "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:DeleteItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATION_TABLE}
 
+  # Provide property for setting up CORS, Authorizer, iamRoleStatements
   GenerateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
     events:
       - http:
           method: post
-          path: certifications/{certificationId}/attachment
+          path: certification/{certificationId}/attachment
           cors: true
-          authorizer: Auth
+
     iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource:
+          - "*"
       - Effect: Allow
         Action:
           - s3:PutObject
         Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
       - Effect: Allow
         Action:
-          - dynamodb:UpdateItem
           - dynamodb:GetItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATIONS_TABLE}
-      - Effect: Allow
-        Action:
-          - xray:GetSamplingRules
-          - xray:GetSamplingTargets
-          - xray:GetSamplingStatisticSummaries
-          - xray:BatchGetTraces
-          - xray:GetServiceGraph
-          - xray:GetTraceGraph
-          - xray:GetTraceSummaries
-          - xray:GetGroups
-          - xray:GetGroup
-          - xray:PutTraceSegments
-        Resource:
-          - "*"
+          - dynamodb:UpdateItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CERTIFICATION_TABLE}
 
 resources:
   Resources:
+    # Add necessary AWS resources. You will need at least the following AWS resources
     GatewayResponseDefault4XX:
       Type: AWS::ApiGateway::GatewayResponse
       Properties:
         ResponseParameters:
           gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
           gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST,PATCH,DELETE'"
         ResponseType: DEFAULT_4XX
-        RestApiId: !Ref ApiGatewayRestApi
+        RestApiId:
+          Ref: ApiGatewayRestApi
 
-    CertificationsTable:
+    CertificationTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        #TableName:
         AttributeDefinitions:
           - AttributeName: userId
             AttributeType: S
@@ -233,18 +187,18 @@ resources:
           - AttributeName: certificationId
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
-        TableName: ${self:provider.environment.CERTIFICATIONS_TABLE}
-        GlobalSecondaryIndexes:
-          - IndexName: ${self:provider.environment.CERTIFICATIONS_CREATED_AT_INDEX}
+        TableName: ${self:provider.environment.CERTIFICATION_TABLE}
+        LocalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.CERTIFICATION_CREATED_AT_INDEX}
             KeySchema:
               - AttributeName: userId
                 KeyType: HASH
               - AttributeName: createdAt
                 KeyType: RANGE
             Projection:
-              ProjectionType: ALL
+              ProjectionType: ALL # What attributes will be copied to an index
 
-    # certification: Complete the bucket properties below.
+    # Do not forget to add the CorsConfiguration propoerty
     AttachmentsBucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -263,19 +217,17 @@ resources:
                 - HEAD
               MaxAge: 3000
 
-    # certification: Complete the policy below and attach it to the bucket defined above
+    # For cross referencing the name of the bucket, use "!Ref AttachmentsBucket"
     BucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:
         PolicyDocument:
-          Id: MyPolicy
+          Id: minhdvid
           Version: "2012-10-17"
           Statement:
-            - Sid: PublicReadForGetBucketObjects
+            - Sid: StatementMinhdv
               Effect: Allow
               Principal: "*"
-              Action:
-                - s3:GetObject
-                - s3:PutObject
+              Action: "s3:GetObject"
               Resource: "arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*"
         Bucket: !Ref AttachmentsBucket

@@ -1,5 +1,5 @@
 /**
- * Fields in a request to update a single certification item.
+ * Fields in a request to update a single TODO item.
  */
 export interface UpdateCertificationRequest {
   name: string;

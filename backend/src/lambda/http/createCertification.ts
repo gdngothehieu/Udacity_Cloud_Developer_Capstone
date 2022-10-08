@@ -1,43 +1,43 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import "source-map-support/register";
-import * as middy from "middy";
-import { cors, httpErrorHandler } from "middy/middlewares";
+
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyHandler,
+  APIGatewayProxyResult,
+} from "aws-lambda";
+
 import { CreateCertificationRequest } from "../../requests/CreateCertificationRequest";
-import { getUserId } from "../utils";
-import { createCertification } from "../../businessLogic/certifications";
+import { createCertification } from "../../businessLogic/certification";
 import { createLogger } from "../../utils/logger";
 
-const logger = createLogger("createCertification");
-// certification: Implement creating a new certification item
+const logger = createLogger("createTodohandler");
 
-export const handler = middy(
-  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    try {
-      logger.info(`Processing event`);
-      const newCertification: CreateCertificationRequest = JSON.parse(
-        event.body
-      );
-      const userId = getUserId(event);
-      const newItem = await createCertification(newCertification, userId);
+export const handler: APIGatewayProxyHandler = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  logger.info("Processing event: ", event);
+  const newCertificationRequest: CreateCertificationRequest = JSON.parse(
+    event.body
+  );
 
-      return {
-        statusCode: 201,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Credentials": true,
-        },
-        body: JSON.stringify({
-          item: newItem,
-        }),
-      };
-    } catch (e) {
-      console.log(e);
-    }
-  }
-);
+  // DONE: Implement creating a new TODO item
+  const authorization = event.headers.Authorization;
+  const split = authorization.split(" ");
+  const jwtToken = split[1];
 
-handler.use(httpErrorHandler()).use(
-  cors({
-    credentials: true,
-  })
-);
+  const newCertificationItem = await createCertification(
+    newCertificationRequest,
+    jwtToken
+  );
+
+  return {
+    statusCode: 201,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": true,
+    },
+    body: JSON.stringify({
+      item: newCertificationItem,
+    }),
+  };
+};

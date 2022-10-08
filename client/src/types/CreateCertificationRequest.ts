@@ -1,4 +1,4 @@
-export interface createCertificationRequest {
+export interface CreateCertificationRequest {
   name: string;
   dueDate: string;
 }

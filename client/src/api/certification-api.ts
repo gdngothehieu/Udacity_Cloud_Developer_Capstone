@@ -1,6 +1,6 @@
 import { apiEndpoint } from "../config";
-import { Certifications } from "../types/Certifications";
-import { createCertificationRequest } from "../types/CreateCertificationRequest";
+import { Certifications } from "../types/Certification";
+import { CreateCertificationRequest } from "../types/CreateCertificationRequest";
 import Axios from "axios";
 import { UpdateCertificationRequest } from "../types/UpdateCertificationRequest";
 
@@ -9,7 +9,7 @@ export async function getCertification(
 ): Promise<Certifications[]> {
   console.log("Fetching Certification");
 
-  const response = await Axios.get(`${apiEndpoint}/certifications`, {
+  const response = await Axios.get(`${apiEndpoint}/certification`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${idToken}`,
@@ -26,7 +26,7 @@ export async function searchCertification(
   console.log("Fetching Certification");
 
   const response = await Axios.get(
-    `${apiEndpoint}/certifications?search=${searchContent}`,
+    `${apiEndpoint}/certification?search=${searchContent}`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -38,12 +38,12 @@ export async function searchCertification(
   return response.data.items;
 }
 
-export const createCertification = async (
+export async function createCertification(
   idToken: string,
-  newCertification: createCertificationRequest
-): Promise<Certifications> => {
+  newCertification: CreateCertificationRequest
+): Promise<Certifications> {
   const response = await Axios.post(
-    `${apiEndpoint}/certifications`,
+    `${apiEndpoint}/certification`,
     JSON.stringify(newCertification),
     {
       headers: {
@@ -52,17 +52,16 @@ export const createCertification = async (
       },
     }
   );
-  console.log(response);
   return response.data.item;
-};
+}
 
-export const patchCertification = async (
+export async function patchCertification(
   idToken: string,
   certificationId: string,
   updatedCertification: UpdateCertificationRequest
-): Promise<void> => {
+): Promise<void> {
   await Axios.patch(
-    `${apiEndpoint}/certifications/${certificationId}`,
+    `${apiEndpoint}/certification/${certificationId}`,
     JSON.stringify(updatedCertification),
     {
       headers: {
@@ -71,52 +70,40 @@ export const patchCertification = async (
       },
     }
   );
-};
+}
 
-export const deleteCertification = async (
+export async function deleteCertification(
   idToken: string,
   certificationId: string
-): Promise<void> => {
-  try {
-    await Axios.delete(`${apiEndpoint}/certifications/${certificationId}`, {
+): Promise<void> {
+  await Axios.delete(`${apiEndpoint}/certification/${certificationId}`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
+}
+
+export async function getUploadUrl(
+  idToken: string,
+  certificationId: string
+): Promise<string> {
+  const response = await Axios.post(
+    `${apiEndpoint}/certification/${certificationId}/attachment`,
+    "",
+    {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
       },
-    });
-  } catch (e) {
-    throw Error("Delete Certification failed");
-  }
-};
+    }
+  );
+  return response.data.uploadUrl;
+}
 
-export const getUploadUrl = async (
-  idToken: string,
-  certificationId: string
-): Promise<string> => {
-  try {
-    const response = await Axios.post(
-      `${apiEndpoint}/certifications/${certificationId}/attachment`,
-      "",
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
-      }
-    );
-    return response.data.uploadUrl;
-  } catch (e) {
-    throw Error("Error getting upload url");
-  }
-};
-
-export const uploadFile = async (
+export async function uploadFile(
   uploadUrl: string,
   file: Buffer
-): Promise<void> => {
-  try {
-    await Axios.put(uploadUrl, file);
-  } catch (e) {
-    throw Error("Error uploading files");
-  }
-};
+): Promise<void> {
+  await Axios.put(uploadUrl, file);
+}

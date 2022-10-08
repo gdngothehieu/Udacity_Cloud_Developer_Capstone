@@ -1,51 +1,74 @@
 import "source-map-support/register";
 
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import * as middy from "middy";
-import { cors, httpErrorHandler } from "middy/middlewares";
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyHandler,
+  APIGatewayProxyResult,
+} from "aws-lambda";
 
-import { updateCertification } from "../../businessLogic/certifications";
 import { UpdateCertificationRequest } from "../../requests/UpdateCertificationRequest";
-import { getUserId } from "../utils";
+import {
+  updateCertification,
+  certificationExists,
+} from "../../businessLogic/certification";
 import { createLogger } from "../../utils/logger";
 
-const logger = createLogger("updateCertification");
-// certification: Update a certification item with the provided id using values in the "updatedCertification" object
+const logger = createLogger("updateCertificationhandler");
 
-export const handler = middy(
-  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    try {
-      const certificationId = event.pathParameters.certificationId;
-      const updatedCertification: UpdateCertificationRequest = JSON.parse(
-        event.body
-      );
-      logger.info("Processing event");
+export const handler: APIGatewayProxyHandler = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const certificationId = event.pathParameters.certificationId;
 
-      const userId = getUserId(event);
-      const response = await updateCertification(
-        userId,
-        certificationId,
-        updatedCertification
-      );
+  const updateCertificationRequest: UpdateCertificationRequest = JSON.parse(
+    event.body
+  );
+  const authorization = event.headers.Authorization;
+  const split = authorization.split(" ");
+  const jwtToken = split[1];
+  logger.info("Processing event: ", event);
+  const isValidCertificationId = await certificationExists(
+    certificationId,
+    jwtToken
+  );
 
-      return {
-        statusCode: 200,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Credentials": true,
-        },
-        body: JSON.stringify({
-          item: response,
-        }),
-      };
-    } catch (e) {
-      console.log(e);
-    }
+  if (!isValidCertificationId) {
+    return {
+      statusCode: 404,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+      },
+      body: JSON.stringify({
+        error: "Certification not found",
+      }),
+    };
   }
-);
 
-handler.use(httpErrorHandler()).use(
-  cors({
-    credentials: true,
-  })
-);
+  try {
+    const updatedCertification = await updateCertification(
+      certificationId,
+      updateCertificationRequest,
+      jwtToken
+    );
+
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+      },
+      body: JSON.stringify(updatedCertification),
+    };
+  } catch (err) {
+    logger.error("Update failed", err);
+    return {
+      statusCode: 500,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": true,
+      },
+      body: "Update failed",
+    };
+  }
+};
